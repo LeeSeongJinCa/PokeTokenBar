@@ -4,9 +4,15 @@ import SwiftUI
 
 @main
 @MainActor
-struct TokenTownApp: App {
-    @NSApplicationDelegateAdaptor(TokenTownDelegate.self) private var delegate
-    var body: some Scene { Settings { EmptyView() } }
+enum TokenTownApp {
+    static func main() {
+        let app = NSApplication.shared
+        let delegate = TokenTownDelegate()
+        app.delegate = delegate
+        // AppKit owns the window lifecycle; a Settings-only SwiftUI App would
+        // automatically create an empty Settings window for this regular app.
+        withExtendedLifetime(delegate) { app.run() }
+    }
 }
 
 @MainActor
@@ -77,6 +83,11 @@ final class TokenTownDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate
         menu.addItem(withTitle: "TokenTown 종료", action: #selector(quit), keyEquivalent: "q").target = self
         item.menu = menu
         statusItem = item
+        let mainMenu = NSMenu()
+        let appItem = NSMenuItem(title: "TokenTown", action: nil, keyEquivalent: "")
+        appItem.submenu = menu.copy() as? NSMenu
+        mainMenu.addItem(appItem)
+        NSApp.mainMenu = mainMenu
     }
     private func observeBalance() {
         guard let city else { return }
@@ -91,7 +102,10 @@ final class TokenTownDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate
     }
     @objc private func refresh() { Task { await monitor?.refresh() } }
     @objc private func quit() { NSApp.terminate(nil) }
-    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool { showCity(); return true }
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        showCity()
+        return false // Already handled: do not let SwiftUI reopen its empty Settings scene.
+    }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
     func applicationWillTerminate(_ notification: Notification) {
         monitor?.stop()

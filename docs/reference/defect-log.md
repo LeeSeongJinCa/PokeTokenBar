@@ -1128,3 +1128,12 @@ read_when:
   the yellow placeholder pixels on the actual CityView. The source sweep covered the reward
   progress, footer actions, cancel, and building movement buttons. City previews use injected
   synthetic usage sources and never scan user logs or modify user saves.
+
+- **A regular AppKit game window must not use a Settings-only SwiftUI App as its
+  entry point.** SwiftUI automatically opened an empty Settings window behind the
+  city, exposed when the main window closed. An initial reopen callback alone did
+  not remove that underlying scene. TokenTown now runs NSApplication directly,
+  owns its main menu and window, and handles reopen explicitly. The source sweep
+  retained the original accessory-only PokeTokenBar entry for upstream reference;
+  it is not the fork's active entry. Native QA covers closing the city window,
+  reopening through LaunchServices, and absence of an extra Settings window.
