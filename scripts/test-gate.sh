@@ -19,6 +19,9 @@ cd "$(dirname "$0")/.."
 THRESHOLD="${THRESHOLD:-75}"
 
 LOGIC_CORE=(
+  "Sources/PokeTokenBar/City/CityModel.swift"
+  "Sources/PokeTokenBar/City/CityStore.swift"
+  "Sources/PokeTokenBar/City/CityUsageMonitor.swift"
   "Sources/PokeTokenBar/Core/CompanionModel.swift"
   "Sources/PokeTokenBar/Core/UnownForm.swift"
   "Sources/PokeTokenBar/Core/CollectionWeight.swift"
@@ -40,11 +43,27 @@ LOGIC_CORE=(
 )
 
 echo "▶ swift test (--enable-code-coverage)"
-swift test --enable-code-coverage
+swift test --enable-code-coverage "$@"
 
 PROF=$(find .build -name 'default.profdata' | head -1)
 # dSYM 안에도 같은 이름의 DWARF 바이너리가 있어 head -1 이 그걸 집으면 llvm-cov 가 실패한다 → 제외.
 BIN=$(find .build -name 'PokeTokenBarPackageTests' -type f ! -path '*.dSYM/*' | head -1)
+# Swift 6.4's Xcode build mode uses a module-named XCTest bundle instead.
+if [[ -z "$BIN" ]]; then
+  BIN=$(find .build -path '*PokeTokenBarTests.xctest/Contents/MacOS/PokeTokenBarTests' -type f | head -1)
+fi
+# Xcode-backed SwiftPM can leave only profraw files; merge them with its LLVM tools.
+if [[ -z "$PROF" ]]; then
+  COV_DIR="$(swift build --show-bin-path)/codecov"
+  shopt -s nullglob
+  RAW_PROFILES=("$COV_DIR"/*.profraw)
+  shopt -u nullglob
+  if [[ ${#RAW_PROFILES[@]} -gt 0 ]]; then
+    LLVM_PROFDATA=$(xcrun --find llvm-profdata)
+    PROF="$COV_DIR/default.profdata"
+    "$LLVM_PROFDATA" merge -sparse "${RAW_PROFILES[@]}" -o "$PROF"
+  fi
+fi
 if [[ -z "$PROF" || -z "$BIN" ]]; then
   echo "✗ 커버리지 산출물(profdata/binary)을 찾지 못했습니다." >&2
   exit 1

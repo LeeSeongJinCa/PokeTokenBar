@@ -2,7 +2,6 @@ import AppKit
 import QuartzCore
 import SwiftUI
 
-@main
 @MainActor
 struct PokeTokenBarApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
