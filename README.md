@@ -1,3 +1,7 @@
+# TokenTown fork
+
+This fork implements **TokenTown**, a local-first macOS virtual property game powered by Codex and Claude Code usage. The default executable opens TokenTown. Build with `./scripts/build-town.sh`; see the [TokenTown guide](README.tokentown.ko.md) for gameplay, storage, and limitations. The original PokeTokenBar documentation follows for upstream reference.
+
 <div align="center">
 
 <img src="assets/icon.png" width="128" alt="PokeTokenBar icon">

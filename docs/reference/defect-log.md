@@ -1117,3 +1117,14 @@ read_when:
   자동 업데이트 시 앱 종료를 기다릴 때 `pgrep -x PokeTokenBar`를 쓰면, 중복 인스턴스가 살아있는 동안 루프를
   결코 빠져나오지 못하고 20초 타임아웃을 온전히 소모한다(#175). `ProcessInfo.processInfo.processIdentifier`로
   종료 대상 프로세스 PID를 전달하고 `kill -0 "$3"`로 특정 프로세스의 종료를 대기한다.
+
+## TokenTown native previews
+
+- **ImageRenderer dimensions do not prove that controls rendered.** The initial TokenTown
+  native-render test checked only image presence and size, allowing AppKit-backed default
+  buttons and ProgressView to become yellow unsupported-control placeholders. Use SwiftUI
+  shapes and an explicit ButtonStyle on this renderable screen; visually inspect previews.
+  `CityUsageIntegrationTests.testNativeCityViewRendersAtExpectedSize` additionally rejects
+  the yellow placeholder pixels on the actual CityView. The source sweep covered the reward
+  progress, footer actions, cancel, and building movement buttons. City previews use injected
+  synthetic usage sources and never scan user logs or modify user saves.
